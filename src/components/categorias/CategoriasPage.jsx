@@ -109,18 +109,46 @@ function CategoriasPage() {
   const handleSalvar = async (categoria) => {
     try {
       if (categoriaEditando) {
-        // PUT /api/categorias/{id}
+        // =====================================================
+        // ATUALIZAR — PUT retorna 204 (sem body)
+        //
+        // O backend não retorna o objeto atualizado.
+        // Mas não precisamos dele! Já temos todos os dados:
+        // o objeto "categoria" que enviamos contém id, nome e descricao.
+        //
+        // Usamos map para substituir APENAS a categoria editada
+        // no array, mantendo todas as outras iguais.
+        // =====================================================
         await atualizarCategoria(categoria.id, categoria);
+
+        setCategorias((prev) =>
+          prev.map((cat) => (cat.id === categoria.id ? categoria : cat)),
+        );
+
         toast.success(`Categoria "${categoria.nome}" atualizada com sucesso!`);
       } else {
-        // POST /api/categorias
-        await criarCategoria(categoria);
+        // =====================================================
+        // CRIAR — POST retorna 201 com o objeto criado
+        //
+        // O backend retorna o objeto completo, incluindo o "id"
+        // gerado automaticamente pelo banco de dados.
+        //
+        // PRECISAMOS usar o retorno (novaCategoria) porque só
+        // ele tem o "id" real. O objeto "categoria" que montamos
+        // no formulário não tem id (o banco que gera).
+        //
+        // Usamos spread para criar um novo array com todos os
+        // itens anteriores + o novo item no final.
+        // =====================================================
+        const novaCategoria = await criarCategoria(categoria);
+
+        setCategorias((prev) => [...prev, novaCategoria]);
+
         toast.success(`Categoria "${categoria.nome}" cadastrada com sucesso!`);
       }
-      // Fecha o modal e recarrega os dados
       setIsFormModalOpen(false);
       setCategoriaEditando(null);
-      await carregarDados();
+      // Repare: NÃO chamamos carregarDados() aqui!
     } catch (error) {
       toast.error("Erro ao salvar a categoria.");
       console.error("Erro ao salvar:", error);
@@ -136,29 +164,28 @@ function CategoriasPage() {
 
   const handleDeletar = async () => {
     try {
-      // DELETE /api/categorias/{id}
+      // =====================================================
+      // DELETAR — DELETE retorna 204 (sem body)
+      //
+      // Se o DELETE teve sucesso (não caiu no catch),
+      // sabemos que a categoria foi removida do banco.
+      //
+      // Usamos filter para criar um novo array que contém
+      // TODAS as categorias EXCETO a que foi deletada.
+      // =====================================================
       await deletarCategoria(categoriaDeletando.id);
+
+      setCategorias((prev) =>
+        prev.filter((cat) => cat.id !== categoriaDeletando.id),
+      );
+
       toast.success(
         `Categoria "${categoriaDeletando.nome}" removida com sucesso!`,
       );
       setIsDeleteDialogOpen(false);
       setCategoriaDeletando(null);
-      await carregarDados();
+      // Repare: NÃO chamamos carregarDados() aqui!
     } catch (error) {
-      // =========================================================
-      // TRATAMENTO DE ERRO ESPECÍFICO DO BACKEND
-      //
-      // Quando tentamos deletar uma categoria que tem produtos,
-      // o backend retorna HTTP 400 com:
-      // { "mensagem": "Não é possível deletar esta categoria..." }
-      //
-      // Capturamos essa mensagem e mostramos no toast.
-      // Se não fosse possível extrair a mensagem, usamos uma genérica.
-      //
-      // error.response?.data?.mensagem usa optional chaining (?.)
-      // para evitar erros se response ou data forem undefined
-      // (ex: se a API estiver fora do ar, não tem response).
-      // =========================================================
       const mensagem =
         error.response?.data?.mensagem || "Erro ao deletar a categoria.";
       toast.error(mensagem);
