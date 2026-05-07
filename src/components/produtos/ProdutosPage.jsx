@@ -11,6 +11,7 @@ import ProdutoTable from "./ProdutoTable";
 import ProdutoFormModal from "./ProdutoFormModal";
 import ProdutoDeleteDialog from "./ProdutoDeleteDialog";
 import { getCategorias } from "../../services/categoriaService";
+import DetalheModal from "./DetalheModal";
 
 function ProdutosPage() {
   const [produtos, setProdutos] = useState([]);
@@ -23,6 +24,8 @@ function ProdutosPage() {
   const [produtoEditando, setProdutoEditando] = useState(null);
   const [produtoDeletando, setProdutoDeletando] = useState(null);
   const [categorias, setCategorias] = useState([]);
+  const [isDetalheModalOpen, setIsDetalheModalOpen] = useState(false);
+  const [produtoDetalhes, setProdutoDetalhes] = useState(null);
 
   const toast = useToast();
 
@@ -103,6 +106,11 @@ function ProdutosPage() {
     }
   };
 
+  const handleVerDetalhes = (produto) => {
+    setProdutoDetalhes(produto); // Define qual produto terá detalhes visualizados
+    setIsDetalheModalOpen(true); // Abre o modal
+  };
+
   return (
     <div className="p-6">
       {/* Header da página */}
@@ -153,6 +161,7 @@ function ProdutosPage() {
           onSearchChange={setSearchTerm}
           onEditar={handleEditar}
           onDeletar={handleConfirmarDelete}
+          onVerDetalhes={handleVerDetalhes}
         />
       )}
 
@@ -166,6 +175,16 @@ function ProdutosPage() {
         produtoEditando={produtoEditando}
         onSalvar={handleSalvar}
         categorias={categorias} // ← NOVA PROP
+      />
+
+      {/* Modal de Detalhes do Produto (relacionamento 1-para-1) */}
+      <DetalheModal
+        isOpen={isDetalheModalOpen}
+        onClose={() => {
+          setIsDetalheModalOpen(false);
+          setProdutoDetalhes(null);
+        }}
+        produto={produtoDetalhes}
       />
 
       {/* Diálogo de confirmação de exclusão */}

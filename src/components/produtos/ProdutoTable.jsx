@@ -1,4 +1,4 @@
-import { Search, Pencil, Trash2, PackageOpen } from "lucide-react";
+import { Search, Pencil, Trash2, PackageOpen, FileText } from "lucide-react";
 
 function ProdutoTable({
   produtos,
@@ -6,6 +6,7 @@ function ProdutoTable({
   onSearchChange,
   onEditar,
   onDeletar,
+  onVerDetalhes,
 }) {
   // Filtra os produtos pelo termo de busca (nome ou descrição)
   const produtosFiltrados = produtos.filter((p) => {
@@ -113,6 +114,13 @@ function ProdutoTable({
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => onVerDetalhes(produto)}
+                      title="Ver detalhes técnicos"
+                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    >
+                      <FileText className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={() => onEditar(produto)}
                       title="Editar produto"
