@@ -12,7 +12,9 @@ function ProdutoTable({
     const termo = searchTerm.toLowerCase();
     return (
       p.nome.toLowerCase().includes(termo) ||
-      (p.descricao && p.descricao.toLowerCase().includes(termo))
+      (p.descricao && p.descricao.toLowerCase().includes(termo)) ||
+      // NOVO: busca também pelo nome da categoria
+      (p.categoria && p.categoria.nome.toLowerCase().includes(termo))
     );
   });
 
@@ -52,6 +54,9 @@ function ProdutoTable({
               <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">
                 Descrição
               </th>
+              <th classname="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">
+                Categoria
+              </th>
               <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wider px-6 py-3">
                 Preço
               </th>
@@ -78,6 +83,15 @@ function ProdutoTable({
                   <span className="text-sm text-gray-500">
                     {produto.descricao || "—"}
                   </span>
+                </td>
+                <td className="px-6 py-4">
+                  {produto.categoria ? (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                      {produto.categoria.nome}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-gray-400">Sem categoria</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-right">
                   <span className="text-sm font-medium text-gray-900">

@@ -10,6 +10,7 @@ import { useToast } from "../../hooks/useToast";
 import ProdutoTable from "./ProdutoTable";
 import ProdutoFormModal from "./ProdutoFormModal";
 import ProdutoDeleteDialog from "./ProdutoDeleteDialog";
+import { getCategorias } from "../../services/categoriaService";
 
 function ProdutosPage() {
   const [produtos, setProdutos] = useState([]);
@@ -21,24 +22,29 @@ function ProdutosPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [produtoEditando, setProdutoEditando] = useState(null);
   const [produtoDeletando, setProdutoDeletando] = useState(null);
+  const [categorias, setCategorias] = useState([]);
 
   const toast = useToast();
 
   // Carrega produtos ao montar o componente
   useEffect(() => {
-    carregarProdutos();
+    carregarDados();
   }, []);
 
-  const carregarProdutos = async () => {
+  const carregarDados = async () => {
     try {
       setLoading(true);
-      const data = await getProdutos();
-      setProdutos(data);
+      const [dadosProdutos, dadosCategorias] = await Promise.all([
+        getProdutos(),
+        // .catch(() => []) evita que a página quebre se o endpoint de categorias falhar.
+        // Simplesmente trata como "sem categorias" — o seletor não aparece.
+        getCategorias().catch(() => []),
+      ]);
+      setProdutos(dadosProdutos);
+      setCategorias(dadosCategorias);
     } catch (error) {
-      toast.error(
-        "Não foi possível carregar os produtos. Verifique se a API está rodando.",
-      );
-      console.error("Erro ao carregar produtos:", error);
+      toast.error("Não foi possível carregar os dados.");
+      console.error("Erro:", error);
     } finally {
       setLoading(false);
     }
@@ -68,7 +74,7 @@ function ProdutosPage() {
       }
       setIsFormModalOpen(false);
       setProdutoEditando(null);
-      await carregarProdutos();
+      await carregarDados();
     } catch (error) {
       toast.error(
         "Erro ao salvar o produto. Verifique os dados e tente novamente.",
@@ -90,7 +96,7 @@ function ProdutosPage() {
       toast.success(`Produto "${produtoDeletando.nome}" removido com sucesso!`);
       setIsDeleteDialogOpen(false);
       setProdutoDeletando(null);
-      await carregarProdutos();
+      await carregarDados();
     } catch (error) {
       toast.error("Erro ao deletar o produto.");
       console.error("Erro ao deletar:", error);
@@ -118,7 +124,7 @@ function ProdutosPage() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={carregarProdutos}
+            onClick={carregarDados}
             title="Recarregar lista"
             className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
           >
@@ -159,6 +165,7 @@ function ProdutosPage() {
         }}
         produtoEditando={produtoEditando}
         onSalvar={handleSalvar}
+        categorias={categorias} // ← NOVA PROP
       />
 
       {/* Diálogo de confirmação de exclusão */}
